@@ -1,9 +1,12 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NATI_SYSTEM_PROMPT } from "./nati-personality.js";
 import { getHistory, addMessage } from "./memory-store.js";
 
-const openai = new OpenAI({
-  apiKey: process.env["OPENAI_API_KEY"],
+const genAI = new GoogleGenerativeAI(process.env["GEMINI_API_KEY"] ?? "");
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  systemInstruction: NATI_SYSTEM_PROMPT,
 });
 
 export async function generateReply(
@@ -19,22 +22,20 @@ export async function generateReply(
 
   addMessage(chatId, "user", contextNote);
 
-  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: "system", content: NATI_SYSTEM_PROMPT },
-    ...history.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    })),
-  ];
+  const geminiHistory = history.slice(0, -1).map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages,
-    max_tokens: 200,
+  const chat = model.startChat({
+    history: geminiHistory,
+    generationConfig: {
+      maxOutputTokens: 200,
+    },
   });
 
-  const reply =
-    response.choices[0]?.message?.content?.trim() ?? "yea gimme a sec";
+  const result = await chat.sendMessage(contextNote);
+  const reply = result.response.text().trim() || "yea gimme a sec";
 
   addMessage(chatId, "assistant", reply);
 
