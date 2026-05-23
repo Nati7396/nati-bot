@@ -2,7 +2,7 @@ services:
   - type: web
     name: nati-bot
     runtime: node
-    buildCommand: npm install -g pnpm && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    buildCommand: corepack enable && corepack prepare pnpm@10 --activate && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
     startCommand: pnpm --filter @workspace/api-server run start
     envVars:
       - key: PORT
