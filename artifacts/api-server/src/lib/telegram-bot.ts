@@ -109,6 +109,9 @@ async function handleMessage(msg: TelegramMessage): Promise<void> {
 
   if (!text || !businessConnectionId) return;
 
+  // Ignore messages from bots
+  if (msg.from?.is_bot) return;
+
   const dedupeKey = `${chatId}:${msg.message_id}`;
   if (processingSet.has(dedupeKey)) return;
   processingSet.add(dedupeKey);
