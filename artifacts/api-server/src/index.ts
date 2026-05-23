@@ -1,6 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { initBot } from "./lib/telegram-bot";
+import { initBot } from "./lib/telegram-bot.js";
 
 const rawPort = process.env["PORT"];
 

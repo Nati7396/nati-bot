@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { getBot } from "../lib/telegram-bot.js";
+import { getBotStatus } from "../lib/telegram-bot.js";
 
 const router = Router();
 
 router.get("/bot/status", (_req, res) => {
-  const bot = getBot();
+  const { running } = getBotStatus();
   res.json({
-    status: bot ? "running" : "not started",
+    status: running ? "running" : "stopped",
     mode: "secretary",
     personality: "Nati",
   });
