@@ -135,8 +135,16 @@ async function pollLoop(): Promise<void> {
     try {
       const updates = await getUpdates();
 
+      if (updates.length > 0) {
+        logger.info({ count: updates.length }, "Updates received");
+      }
+
       for (const update of updates) {
         offset = update.update_id + 1;
+
+        // Log every update type for debugging
+        const updateKeys = Object.keys(update).filter((k) => k !== "update_id");
+        logger.info({ updateId: update.update_id, types: updateKeys }, "Processing update");
 
         if (update.business_connection) {
           const conn = update.business_connection;
@@ -152,11 +160,30 @@ async function pollLoop(): Promise<void> {
         }
 
         if (update.business_message) {
+          logger.info(
+            {
+              chatId: update.business_message.chat.id,
+              text: update.business_message.text,
+              connectionId: update.business_message.business_connection_id,
+            },
+            "Business message update",
+          );
           await handleMessage(update.business_message);
         }
 
         if (update.edited_business_message) {
-          logger.info({ updateId: update.update_id }, "Business message edited — ignoring");
+          logger.info({ updateId: update.update_id }, "Edited business message — ignoring");
+        }
+
+        if (update.message) {
+          logger.info(
+            {
+              chatId: update.message.chat.id,
+              hasConnectionId: !!update.message.business_connection_id,
+              text: update.message.text?.slice(0, 50),
+            },
+            "Regular message update",
+          );
         }
       }
     } catch (err) {
