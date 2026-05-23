@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { initBot } from "./lib/telegram-bot";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,11 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  try {
+    initBot();
+    logger.info("Nati secretary bot initialized");
+  } catch (err) {
+    logger.error({ err }, "Failed to initialize Telegram bot");
+  }
 });

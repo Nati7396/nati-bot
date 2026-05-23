@@ -1,45 +1,48 @@
-# [Project name]
+# Nati — Telegram AI Secretary Bot
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An AI-powered Telegram secretary bot that connects to your account via Business Mode and auto-replies to incoming messages as "Nati" — a real, human-sounding persona from Ethiopia.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `TELEGRAM_BOT_TOKEN` — your bot token from @BotFather
+- Required env: `OPENAI_API_KEY` — your OpenAI API key for AI responses
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
+- Bot: node-telegram-bot-api (polling mode)
+- AI: OpenAI gpt-4o-mini
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/api-server/src/lib/telegram-bot.ts` — bot init and message handler
+- `artifacts/api-server/src/lib/ai-responder.ts` — OpenAI call logic
+- `artifacts/api-server/src/lib/nati-personality.ts` — Nati's system prompt / personality
+- `artifacts/api-server/src/lib/memory-store.ts` — in-memory per-chat conversation history (30 msgs, 24h TTL)
+- `artifacts/api-server/src/routes/bot.ts` — `/api/bot/status` endpoint
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Uses Telegram Business Mode (`business_message` event) so bot replies on behalf of the account owner
+- In-memory conversation history per chat (no DB needed for MVP)
+- Loop prevention via deduplication set keyed on `chatId:messageId`
+- gpt-4o-mini for fast, cheap responses with max 200 tokens (keeps replies short like real texting)
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Nati is your AI secretary on Telegram. When someone messages you, Nati responds on your behalf in your style — casual, direct, human. Supports full multi-turn conversation with per-chat memory.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Personality prompt: "Nati" — Ethiopian teen chat style, short msgs, direct, slang (bruh/bro/man), emotionally intense but chill
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Bot must have Secretary Mode enabled in @BotFather (Business > Secretary Mode)
+- You must connect the bot to your Telegram account via Telegram Business settings
+- Bot only replies to `business_message` updates (messages in your managed chats)
+- Memory is in-RAM only — restarting the server clears all chat histories
