@@ -24,10 +24,14 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 
-  try {
-    initBot();
-    logger.info("Nati secretary bot initialized");
-  } catch (err) {
-    logger.error({ err }, "Failed to initialize Telegram bot");
+  if (process.env["BOT_ENABLED"] === "true") {
+    try {
+      initBot();
+      logger.info("Nati secretary bot initialized");
+    } catch (err) {
+      logger.error({ err }, "Failed to initialize Telegram bot");
+    }
+  } else {
+    logger.info("BOT_ENABLED not set — skipping bot polling (set BOT_ENABLED=true to activate)");
   }
 });
